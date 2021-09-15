@@ -1,0 +1,10 @@
+# Set GO path
+export GOROOT=/usr/local/go
+export GOPATH=$HOME/go
+export PATH=$PATH:$GOPATH/bin:$GOROOT/bin
+
+# RUST PATH
+export PATH="$HOME/.cargo/bin:$PATH"
+
+# Flutter2 PATH
+PATH=$PATH:/opt/flutter/bin

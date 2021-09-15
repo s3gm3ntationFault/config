@@ -1,0 +1,29 @@
+# ~/.bashrc: executed by bash(1) for non-login shells.
+# see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
+# for examples
+
+# If not running interactively, don't do anything
+case $- in
+    *i*) ;;
+      *) return;;
+esac
+
+# Bash configurations
+if [ -f ~/.bash_config ]; then
+    . ~/.bash_config
+fi
+
+# Bash prompt customization
+if [ -f ~/.bash_prompt ]; then
+    . ~/.bash_config
+fi
+
+# Load aliases
+if [ -f ~/.bash_aliases ]; then
+    . ~/.bash_aliases
+fi
+
+# Load exports
+if [ -f ~/.bash_exports ]; then
+    . ~/.bash_exports
+fi

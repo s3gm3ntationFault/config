@@ -1,0 +1,75 @@
+# set variable identifying the chroot you work in (used in the prompt below)
+if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
+    debian_chroot=$(cat /etc/debian_chroot)
+fi
+
+# set a fancy prompt (non-color, unless we know we "want" color)
+case "$TERM" in
+    xterm-color|*-256color) color_prompt=yes;;
+esac
+
+# uncomment for a colored prompt, if the terminal has the capability; turned
+# off by default to not distract the user: the focus in a terminal window
+# should be on the output of commands, not on the prompt
+#force_color_prompt=yes
+
+if [ -n "$force_color_prompt" ]; then
+    if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
+	# We have color support; assume it's compliant with Ecma-48
+	# (ISO/IEC-6429). (Lack of such support is extremely rare, and such
+	# a case would tend to support setf rather than setaf.)
+	color_prompt=yes
+    else
+	color_prompt=
+    fi
+fi
+
+
+# Git branch in prompt
+parse_git_branch() {
+     git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
+}
+function parse_git_dirty {
+  status=$(git status --porcelain -b 2> /dev/null)
+  aheadRegex="ahead ([0-9]+)"
+  behindRegex="behind ([0-9]+)"
+
+  [[ $status =~ $aheadRegex ]] && ahead="${BASH_REMATCH[1]}" || ahead="0"
+  [[ $status =~ $behindRegex ]] && behind="${BASH_REMATCH[1]}" || behind="0"
+  status=$(git status 2> /dev/null | tail -n1)
+  clean_en="nothing to commit, working tree clean"
+  clean_es="nada para hacer commit, el árbol de trabajo está limpio"
+  [[ $status != $clean_es || $status != $clean_es ]] && echo -n -e "|\U1F9F9"
+  [[ $ahead != "0" ]] && echo -n "| ↑${ahead}"
+  [[ $behind != "0" ]] && echo -n "| ↓${behind}"
+}
+
+function parse_git_stash {
+  [[ $(git stash list 2> /dev/null | tail -n1) != "" ]] && echo -e "|\U1F4A3"
+}
+
+function parse_git_branch {
+  git branch --no-color 2> /dev/null | sed -e '/^[^*]/d' -e "s/* \(.*\)/[\1$(parse_git_dirty)$(parse_git_stash)]/"
+}
+
+function parse_user {
+    [[ $USER == "jordi" ]] && echo -n -e "\U1F9A7" || echo -n $USER
+}
+
+if [ "$color_prompt" = yes ]; then
+    PS1='\[\033[0;32m\]$(parse_user)\[\033[0;36m\]@\h:\w\[\033[0;32m\] $(parse_git_branch) [$(kubectl config current-context)]\n└─\$➤\[\033[0m\] '
+else
+    PS1='\[\033[0;32m\]$(parse_user)\[\033[0;36m\]@\h:\w\[\033[0;32m\] $(parse_git_branch) [$(kubectl config current-context)]\n└─\$➤\[\033[0m\] '
+    # PS1='\u@\h:\w $(parse_git_branch)\n└─\$ ▶ '
+fi
+
+unset color_prompt force_color_prompt
+
+# If this is an xterm set the title to user@host:dir
+case "$TERM" in
+xterm*|rxvt*)
+    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+    ;;
+*)
+    ;;
+esac
